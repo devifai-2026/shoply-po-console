@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import {
   Building2, CheckCircle2, PauseCircle, Hammer, Clock3, PlayCircle,
   XCircle, Activity, Timer, MemoryStick, Radio, RefreshCw,
+  KeyRound, Copy, Check,
 } from 'lucide-react';
 import {
   ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
 } from 'recharts';
 import { overview as overviewApi, platform } from '../services/api';
+import { SERVER_URL } from '../config';
 import { useMetricsSocket } from '../hooks/useMetricsSocket';
 import { StatCard, PageLoader } from '../components/common/UI.jsx';
 import { cn, formatUptime, formatBytes } from '../lib/utils';
@@ -34,6 +36,83 @@ const StatusTiles = ({ counts = {} }) => (
         </div>
       </div>
     ))}
+  </div>
+);
+
+// ─── Platform access (all surfaces + demo credentials) ──────────────────────
+// Root domain is derived from SERVER_URL (drops scheme + a leading "api.").
+const rootDomain = (() => {
+  try {
+    const host = new URL(SERVER_URL).host;      // e.g. api.34-93-178-29.sslip.io or 34-93-178-29.sslip.io
+    return host.replace(/^api\./, '');
+  } catch {
+    return 'localhost:5000';
+  }
+})();
+const scheme = SERVER_URL.startsWith('https') ? 'https' : 'http';
+const surfaceUrl = (sub) => `${scheme}://${sub ? sub + '.' : ''}${rootDomain}`;
+
+// Demo / seeded credentials — reference only. Rotate before real launch.
+const ACCESS = [
+  { name: 'Storefront',    url: surfaceUrl(''),        user: 'buyer3@test.in',    pass: 'buyer12345',  note: 'or customer self-signup' },
+  { name: 'Admin panel',   url: surfaceUrl('admin'),   user: 'admin@store.com',   pass: 'Admin@123',   note: 'store admin' },
+  { name: 'Seller portal', url: surfaceUrl('seller'),  user: 'ravi@acme.in',      pass: 'vendor12345', note: 'or register + admin-approve' },
+  { name: 'PO console',    url: surfaceUrl('console'), user: 'owner@shoply.dev',  pass: 'owner12345',  note: 'this console' },
+  { name: 'API',           url: surfaceUrl('api'),     user: '—',                 pass: '—',           note: 'REST + Socket.IO' },
+];
+
+const CopyText = ({ value }) => {
+  const [copied, setCopied] = useState(false);
+  if (value === '—') return <span className="text-text-tertiary">—</span>;
+  return (
+    <button
+      onClick={() => { navigator.clipboard?.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1200); }}
+      className="inline-flex items-center gap-1 font-mono text-[12px] text-text-primary hover:text-info transition-colors"
+      title="Copy"
+    >
+      {value}
+      {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3 opacity-40" />}
+    </button>
+  );
+};
+
+const PlatformAccess = () => (
+  <div className="rounded-xl border border-border-primary bg-bg-surface overflow-hidden">
+    <div className="px-4 py-3 border-b border-border-primary flex items-center gap-2">
+      <KeyRound className="w-4 h-4 text-text-tertiary" />
+      <h3 className="text-[12px] font-semibold uppercase tracking-wider text-text-tertiary">
+        Platform access
+      </h3>
+      <span className="ml-auto text-[11px] text-text-tertiary">demo credentials — rotate before launch</span>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px]">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wider text-text-tertiary border-b border-border-primary">
+            <th className="px-4 py-2 font-semibold">Surface</th>
+            <th className="px-4 py-2 font-semibold">URL</th>
+            <th className="px-4 py-2 font-semibold">Email</th>
+            <th className="px-4 py-2 font-semibold">Password</th>
+            <th className="px-4 py-2 font-semibold hidden md:table-cell">Notes</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border-primary">
+          {ACCESS.map(a => (
+            <tr key={a.name} className="hover:bg-bg-inset/50">
+              <td className="px-4 py-2.5 font-semibold text-text-primary whitespace-nowrap">{a.name}</td>
+              <td className="px-4 py-2.5">
+                <a href={a.url} target="_blank" rel="noreferrer" className="font-mono text-[12px] text-info hover:underline break-all">
+                  {a.url.replace(/^https?:\/\//, '')}
+                </a>
+              </td>
+              <td className="px-4 py-2.5"><CopyText value={a.user} /></td>
+              <td className="px-4 py-2.5"><CopyText value={a.pass} /></td>
+              <td className="px-4 py-2.5 text-text-tertiary text-[12px] hidden md:table-cell">{a.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </div>
 );
 
@@ -131,6 +210,9 @@ export const Overview = () => {
           accent="text-success"
         />
       </div>
+
+      {/* All platform surfaces + demo credentials */}
+      <PlatformAccess />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard icon={Clock3} label="Queued" value={buildJobs.queued} accent="text-text-secondary" />

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { RefreshCw, Hammer, Download } from 'lucide-react';
+import { RefreshCw, Hammer } from 'lucide-react';
 import { builds as buildsApi, tenants as tenantsApi } from '../services/api';
-import { StatusBadge, PageLoader, EmptyState } from '../components/common/UI.jsx';
+import { StatusBadge, PageLoader, EmptyState, AppBadge, BuildDownloadButton } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
 import { formatDate } from '../lib/utils';
 
@@ -103,8 +103,8 @@ export const Builds = () => {
                       </Link>
                     </td>
                     <td className="table-cell">
-                      <div className="font-semibold">{b.appLabel || b.app || '—'}</div>
-                      {b.applicationId && <div className="text-[11px] font-mono text-text-tertiary">{b.applicationId}</div>}
+                      <AppBadge app={b.app} />
+                      {b.applicationId && <div className="text-[11px] font-mono text-text-tertiary mt-1">{b.applicationId}</div>}
                     </td>
                     <td className="table-cell font-mono text-[12px] uppercase font-semibold">{b.artifact}</td>
                     <td className="table-cell font-mono text-[12px]">
@@ -118,10 +118,8 @@ export const Builds = () => {
                     </td>
                     <td className="table-cell text-text-secondary">{formatDate(b.createdAt)}</td>
                     <td className="table-cell text-right">
-                      {b.status === 'succeeded' && b.artifactUrl ? (
-                        <a href={b.artifactUrl} target="_blank" rel="noreferrer" className="btn-secondary !py-1.5">
-                          <Download className="w-3.5 h-3.5" />Download
-                        </a>
+                      {b.status === 'succeeded' ? (
+                        <BuildDownloadButton id={b._id} />
                       ) : (
                         <span className="text-[12px] text-text-tertiary">—</span>
                       )}

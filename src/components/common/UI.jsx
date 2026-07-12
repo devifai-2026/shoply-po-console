@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Copy, Check, ExternalLink } from 'lucide-react';
+import { Copy, Check, ExternalLink, Download, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { platform as platformApi } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext.jsx';
 
 // ─── Status badge (tenant + build statuses) ──────────────────────────────────
 const STATUS_STYLES = {
@@ -127,6 +129,52 @@ export const EmptyState = ({ icon: Icon, title, sub, action }) => (
     {action && <div className="mt-4">{action}</div>}
   </div>
 );
+
+// ─── App badge (buyer vs seller) ─────────────────────────────────────────────
+const APP_STYLES = {
+  buyer:  'bg-info/10 text-info border-info/30',
+  seller: 'bg-primary/10 text-primary-light border-primary/30',
+};
+
+export const AppBadge = ({ app }) => (
+  <span
+    className={cn(
+      'inline-flex items-center px-2 py-0.5 rounded-full border text-[11px] font-semibold capitalize',
+      APP_STYLES[app] || 'bg-slate-500/10 text-slate-400 border-slate-500/30'
+    )}
+  >
+    {app || 'buyer'}
+  </span>
+);
+
+// ─── Build download button (fetches short-lived signed URL on click) ─────────
+export const BuildDownloadButton = ({ id }) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  const download = async () => {
+    setLoading(true);
+    try {
+      const res = await platformApi.buildDownload(id);
+      const url = res?.data?.url;
+      if (!url) throw new Error('No download URL returned');
+      window.open(url, '_blank');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button type="button" onClick={download} disabled={loading} className="btn-secondary !py-1.5">
+      {loading
+        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        : <Download className="w-3.5 h-3.5" />}
+      Download
+    </button>
+  );
+};
 
 // ─── DB badge (default cluster vs custom URI) ────────────────────────────────
 export const DbBadge = ({ onDefault }) => (

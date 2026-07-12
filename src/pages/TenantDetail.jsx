@@ -2,12 +2,39 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Building2, Link2, Database, Smartphone, PauseCircle, PlayCircle,
-  RotateCw, Package, Download, RefreshCw,
+  RotateCw, Package, RefreshCw,
 } from 'lucide-react';
-import { tenants as tenantsApi, builds as buildsApi } from '../services/api';
-import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState } from '../components/common/UI.jsx';
+import { tenants as tenantsApi, builds as buildsApi, platform as platformApi } from '../services/api';
+import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState, AppBadge, BuildDownloadButton } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
 import { formatDate } from '../lib/utils';
+
+const AppBuildGroup = ({ title, app, packageId, busy, onBuild }) => (
+  <div>
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-[12px] font-semibold text-text-primary">{title}</div>
+      <span className="font-mono text-[11px] text-text-tertiary break-all text-right">{packageId || '—'}</span>
+    </div>
+    <div className="flex items-center gap-2 mt-3">
+      <button
+        onClick={() => onBuild(app, 'apk')}
+        disabled={busy === `build-${app}-apk`}
+        className="btn-primary"
+      >
+        <Package className="w-4 h-4" />
+        {busy === `build-${app}-apk` ? 'Queueing…' : 'Build APK'}
+      </button>
+      <button
+        onClick={() => onBuild(app, 'aab')}
+        disabled={busy === `build-${app}-aab`}
+        className="btn-secondary"
+      >
+        <Package className="w-4 h-4" />
+        {busy === `build-${app}-aab` ? 'Queueing…' : 'Build AAB'}
+      </button>
+    </div>
+  </div>
+);
 
 const InfoRow = ({ label, value, mono }) => (
   <div className="flex items-start justify-between gap-4 py-2 border-b border-border-primary last:border-0">
@@ -69,11 +96,11 @@ export const TenantDetail = () => {
     }
   };
 
-  const queueBuild = async (artifact) => {
-    setBusy(`build-${artifact}`);
+  const queueBuild = async (app, artifact) => {
+    setBusy(`build-${app}-${artifact}`);
     try {
-      await tenantsApi.queueBuild(slug, { artifact });
-      toast(`${artifact.toUpperCase()} build queued`);
+      await platformApi.queueBuild(slug, { app, artifact });
+      toast(`${app === 'seller' ? 'Seller' : 'Buyer'} ${artifact.toUpperCase()} build queued`);
       load();
     } catch (err) {
       toast(err.message, 'error');
@@ -94,6 +121,8 @@ export const TenantDetail = () => {
   }
 
   const urls = tenant.urls || {};
+  const buyerAppId = tenant.android?.applicationId;
+  const sellerAppId = tenant.androidSeller?.applicationId || (buyerAppId ? `${buyerAppId}.seller` : undefined);
 
   return (
     <div className="space-y-6">
@@ -194,29 +223,27 @@ export const TenantDetail = () => {
 
         {/* Android app card */}
         <div className="console-card p-5">
-          <div className="flex items-center gap-2 text-[13px] font-bold text-text-primary mb-3">
-            <Smartphone className="w-4 h-4 text-primary-light" /> Android app
+          <div className="flex items-center gap-2 text-[13px] font-bold text-text-primary mb-4">
+            <Smartphone className="w-4 h-4 text-primary-light" /> Android apps
           </div>
-          <InfoRow label="Application ID" value={tenant.android?.applicationId} mono />
-          <InfoRow label="App label" value={tenant.android?.appLabel} />
 
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border-primary">
-            <button
-              onClick={() => queueBuild('apk')}
-              disabled={busy === 'build-apk'}
-              className="btn-primary"
-            >
-              <Package className="w-4 h-4" />
-              {busy === 'build-apk' ? 'Queueing…' : 'Queue APK build'}
-            </button>
-            <button
-              onClick={() => queueBuild('aab')}
-              disabled={busy === 'build-aab'}
-              className="btn-secondary"
-            >
-              <Package className="w-4 h-4" />
-              {busy === 'build-aab' ? 'Queueing…' : 'Queue AAB build'}
-            </button>
+          <div className="space-y-4">
+            <AppBuildGroup
+              title="Buyer App"
+              app="buyer"
+              packageId={buyerAppId}
+              busy={busy}
+              onBuild={queueBuild}
+            />
+            <div className="pt-4 border-t border-border-primary">
+              <AppBuildGroup
+                title="Seller App"
+                app="seller"
+                packageId={sellerAppId}
+                busy={busy}
+                onBuild={queueBuild}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -233,6 +260,7 @@ export const TenantDetail = () => {
             <table className="w-full">
               <thead className="bg-bg-inset border-y border-border-primary">
                 <tr>
+                  <th className="table-head">App</th>
                   <th className="table-head">Artifact</th>
                   <th className="table-head">Version</th>
                   <th className="table-head">Status</th>
@@ -243,6 +271,7 @@ export const TenantDetail = () => {
               <tbody className="divide-y divide-border-primary">
                 {buildList.map(b => (
                   <tr key={b._id} className="hover:bg-bg-raised/40 transition-colors">
+                    <td className="table-cell"><AppBadge app={b.app} /></td>
                     <td className="table-cell font-mono text-[12px] uppercase font-semibold">{b.artifact}</td>
                     <td className="table-cell font-mono text-[12px]">
                       {b.versionName || '—'}{b.versionCode != null ? ` (${b.versionCode})` : ''}
@@ -255,10 +284,8 @@ export const TenantDetail = () => {
                     </td>
                     <td className="table-cell text-text-secondary">{formatDate(b.createdAt)}</td>
                     <td className="table-cell text-right">
-                      {b.status === 'succeeded' && b.artifactUrl ? (
-                        <a href={b.artifactUrl} target="_blank" rel="noreferrer" className="btn-secondary !py-1.5">
-                          <Download className="w-3.5 h-3.5" />Download
-                        </a>
+                      {b.status === 'succeeded' ? (
+                        <BuildDownloadButton id={b._id} />
                       ) : (
                         <span className="text-[12px] text-text-tertiary">—</span>
                       )}

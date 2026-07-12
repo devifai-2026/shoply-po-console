@@ -67,7 +67,9 @@ export const metrics = {
 
 // ─── Platform analytics (time series) ────────────────────────────────────────
 export const platform = {
-  analytics: (window = '24h') => get(`/analytics?window=${encodeURIComponent(window)}`),
+  analytics:     (window = '24h')                    => get(`/analytics?window=${encodeURIComponent(window)}`),
+  queueBuild:    (slug, { app = 'buyer', artifact }) => post(`/tenants/${slug}/builds`, { app, artifact }),
+  buildDownload: (id)                                => get(`/builds/${id}/download`),
 };
 
 // ─── Keystore (Android signing) ──────────────────────────────────────────────

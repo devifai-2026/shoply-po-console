@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-primary-light: #818cf8;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #38bdf8;
+
+  --color-bg-base: #0b1020;
+  --color-bg-surface: #111629;
+  --color-bg-raised: #181e35;
+  --color-bg-inset: #0d1226;
+
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-tertiary: #64748b;
+
+  --color-border-primary: #232b45;
+  --color-border-secondary: #2e3757;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-base text-text-primary font-sans antialiased;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .console-card {
+    @apply bg-bg-surface border border-border-primary rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.3)] transition-colors;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-primary text-white rounded-lg text-[13px] font-semibold transition-all hover:bg-primary-dark active:scale-[0.98] shadow-sm shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 cursor-pointer;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-bg-raised text-text-primary border border-border-primary rounded-lg text-[13px] font-semibold transition-all hover:border-border-secondary hover:bg-bg-raised/70 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 cursor-pointer;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-danger/10 text-danger border border-danger/30 rounded-lg text-[13px] font-semibold transition-all hover:bg-danger/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 cursor-pointer;
+  }
+
+  .field-input {
+    @apply w-full px-3.5 py-2.5 bg-bg-inset border border-border-primary rounded-lg text-[13px] text-text-primary placeholder:text-text-tertiary outline-none transition-colors focus:border-primary/60 focus:ring-2 focus:ring-primary/15;
+  }
+
+  .field-label {
+    @apply block text-[11px] font-semibold uppercase tracking-wider text-text-secondary mb-1.5;
+  }
+
+  .table-head {
+    @apply px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-text-tertiary;
+  }
+
+  .table-cell {
+    @apply px-4 py-3.5 text-[13px] text-text-primary;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2e3757;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b4570;
+}
+
+@keyframes pulse-dot {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}

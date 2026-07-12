@@ -1,0 +1,40 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+      - name: Ship dist to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "dist/*"
+          target: "/tmp/deploy-console"
+          strip_components: 1
+      - name: Swap into place
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            sudo rm -rf /opt/ecom/console.old || true
+            sudo mv /opt/ecom/console /opt/ecom/console.old 2>/dev/null || true
+            sudo mkdir -p /opt/ecom/console
+            sudo cp -r /tmp/deploy-console/* /opt/ecom/console/
+            rm -rf /tmp/deploy-console

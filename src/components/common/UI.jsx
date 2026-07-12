@@ -80,6 +80,15 @@ export const CopyButton = ({ text, className }) => {
   );
 };
 
+// ─── Credential row (label + mono value + copy) ──────────────────────────────
+export const CredRow = ({ label, value }) => (
+  <div className="flex items-center gap-2 py-2 border-b border-border-primary last:border-0 min-w-0">
+    <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary w-32 shrink-0">{label}</span>
+    <span className="text-[13px] font-mono text-text-primary truncate flex-1 min-w-0">{value}</span>
+    <CopyButton text={value} />
+  </div>
+);
+
 // ─── URL row with copy + open ────────────────────────────────────────────────
 export const UrlRow = ({ label, url }) => (
   <div className="flex items-center gap-2 py-2 border-b border-border-primary last:border-0 min-w-0">

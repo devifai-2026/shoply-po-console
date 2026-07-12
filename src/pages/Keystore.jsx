@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyRound, ShieldCheck, ShieldAlert, Sparkles, Upload, AlertTriangle } from 'lucide-react';
 import { keystore as keystoreApi } from '../services/api';
-import { CopyButton, PageLoader } from '../components/common/UI.jsx';
+import { CredRow, PageLoader } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
 
 // Read a File into a base64 string (without the data: prefix).
@@ -23,14 +23,6 @@ const Field = ({ label, hint, ...props }) => (
     <label className="field-label">{label}</label>
     <input className="field-input" {...props} />
     {hint && <p className="text-[11px] text-text-tertiary mt-1.5">{hint}</p>}
-  </div>
-);
-
-const CredRow = ({ label, value }) => (
-  <div className="flex items-center gap-2 py-2 border-b border-border-primary last:border-0 min-w-0">
-    <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary w-32 shrink-0">{label}</span>
-    <span className="text-[13px] font-mono text-text-primary truncate flex-1 min-w-0">{value}</span>
-    <CopyButton text={value} />
   </div>
 );
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Rocket, Palette, Smartphone } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Rocket, Palette, Smartphone, Database } from 'lucide-react';
 import { tenants as tenantsApi } from '../services/api';
 import { UrlRow } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
@@ -16,6 +16,7 @@ export const TenantNew = () => {
     brandName: '',
     brandLogo: '',
     primaryColor: '#6D28D9',
+    mongoUri: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,7 @@ export const TenantNew = () => {
         brandName: form.brandName.trim(),
         brandLogo: form.brandLogo.trim(),
         primaryColor: form.primaryColor,
+        mongoUri: form.mongoUri.trim() || undefined,
       };
 
       const res = await tenantsApi.create(body);
@@ -181,6 +183,27 @@ export const TenantNew = () => {
                 />
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Database */}
+        <div className="console-card p-5 space-y-4">
+          <div className="flex items-center gap-2 text-[13px] font-bold text-text-primary">
+            <Database className="w-4 h-4 text-primary-light" /> Database
+          </div>
+          <div>
+            <label className="field-label">MongoDB URI (optional)</label>
+            <input
+              value={form.mongoUri}
+              onChange={set('mongoUri')}
+              placeholder="mongodb+srv://user:pass@cluster.mongodb.net"
+              className="field-input font-mono"
+            />
+            <p className="text-[11px] text-text-tertiary mt-1.5">
+              Leave blank to use a database on the platform's default cluster. Set this to give the
+              tenant its own dedicated cluster/instance for load isolation — can also be set later
+              from the tenant's detail page.
+            </p>
           </div>
         </div>
 

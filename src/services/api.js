@@ -50,6 +50,8 @@ export const tenants = {
   reactivate:    (slug)         => patch(`/tenants/${slug}/reactivate`),
   rotateSecrets: (slug, body)   => put(`/tenants/${slug}/secrets`, body),
   queueBuild:    (slug, body)   => post(`/tenants/${slug}/builds`, body),
+  getAdminCredentials:    (slug) => get(`/tenants/${slug}/admin-credentials`),
+  rotateAdminCredentials: (slug) => post(`/tenants/${slug}/admin-credentials/rotate`),
 };
 
 // ─── Builds ──────────────────────────────────────────────────────────────────

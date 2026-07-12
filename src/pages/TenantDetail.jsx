@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Building2, Link2, Database, Smartphone, PauseCircle, PlayCircle,
-  RotateCw, Package, RefreshCw,
+  RotateCw, Package, RefreshCw, KeyRound, AlertTriangle, Eye,
 } from 'lucide-react';
 import { tenants as tenantsApi, builds as buildsApi, platform as platformApi } from '../services/api';
-import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState, AppBadge, BuildDownloadButton } from '../components/common/UI.jsx';
+import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState, AppBadge, BuildDownloadButton, CredRow } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
 import { formatDate } from '../lib/utils';
 
@@ -51,6 +51,7 @@ export const TenantDetail = () => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [mongoUri, setMongoUri] = useState('');
+  const [adminCreds, setAdminCreds] = useState(null);
 
   const load = useCallback(() => {
     Promise.all([
@@ -89,6 +90,32 @@ export const TenantDetail = () => {
       toast('Database URI rotated');
       setMongoUri('');
       load();
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const revealAdminCredentials = async () => {
+    setBusy('reveal-admin');
+    try {
+      const res = await tenantsApi.getAdminCredentials(slug);
+      setAdminCreds(res.data);
+    } catch (err) {
+      setAdminCreds(null);
+      toast(err.message || 'No credentials on record — rotate to create one', 'warning');
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const rotateAdminCredentials = async () => {
+    setBusy('rotate-admin');
+    try {
+      const res = await tenantsApi.rotateAdminCredentials(slug);
+      setAdminCreds(res.data);
+      toast(res.message || 'Admin credentials rotated');
     } catch (err) {
       toast(err.message, 'error');
     } finally {
@@ -219,6 +246,49 @@ export const TenantDetail = () => {
               {busy === 'rotate' ? 'Rotating…' : 'Rotate URI'}
             </button>
           </form>
+        </div>
+
+        {/* Admin login card */}
+        <div className="console-card p-5">
+          <div className="flex items-center gap-2 text-[13px] font-bold text-text-primary mb-3">
+            <KeyRound className="w-4 h-4 text-primary-light" /> Admin login
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={revealAdminCredentials}
+              disabled={busy === 'reveal-admin'}
+              className="btn-secondary"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              {busy === 'reveal-admin' ? 'Revealing…' : 'Reveal'}
+            </button>
+            <button
+              onClick={rotateAdminCredentials}
+              disabled={busy === 'rotate-admin'}
+              className="btn-secondary"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${busy === 'rotate-admin' ? 'animate-spin' : ''}`} />
+              {busy === 'rotate-admin' ? 'Rotating…' : 'Rotate'}
+            </button>
+          </div>
+          <p className="text-[11px] text-text-tertiary mt-2">
+            Reveal shows the current login if one exists. Rotate generates a new password
+            (creates the login if this tenant doesn't have one yet).
+          </p>
+
+          {adminCreds && (
+            <div className="mt-4 rounded-xl border border-warning/40 bg-warning/10 p-4 space-y-3">
+              <div className="flex items-start gap-2 text-warning">
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                <p className="text-[13px] font-bold">Visible now — treat as sensitive</p>
+              </div>
+              <div className="rounded-lg border border-border-primary bg-bg-inset px-4 py-2">
+                <CredRow label="Email" value={adminCreds.email} />
+                <CredRow label="Password" value={adminCreds.password} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Android app card */}

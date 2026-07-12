@@ -230,10 +230,11 @@ export const TenantDetail = () => {
           <div className="flex items-center gap-2 text-[13px] font-bold text-text-primary mb-3">
             <Link2 className="w-4 h-4 text-primary-light" /> URLs
           </div>
-          {urls.store || urls.admin || urls.api ? (
+          {urls.store || urls.admin || urls.seller || urls.api ? (
             <div>
               {urls.store && <UrlRow label="Store" url={urls.store} />}
               {urls.admin && <UrlRow label="Admin" url={urls.admin} />}
+              {urls.seller && <UrlRow label="Seller" url={urls.seller} />}
               {urls.api && <UrlRow label="API" url={urls.api} />}
             </div>
           ) : (

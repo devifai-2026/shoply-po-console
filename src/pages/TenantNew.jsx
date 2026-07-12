@@ -91,6 +91,7 @@ export const TenantNew = () => {
           <div className="text-left mt-6 rounded-xl border border-border-primary bg-bg-inset px-4 py-2">
             {urls.store && <UrlRow label="Store" url={urls.store} />}
             {urls.admin && <UrlRow label="Admin" url={urls.admin} />}
+            {urls.seller && <UrlRow label="Seller" url={urls.seller} />}
             {urls.api && <UrlRow label="API" url={urls.api} />}
           </div>
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Rocket, Palette, Smartphone, Database } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Rocket, Palette, Smartphone, Database, Upload, Loader2, AlertTriangle } from 'lucide-react';
 import { tenants as tenantsApi } from '../services/api';
-import { UrlRow } from '../components/common/UI.jsx';
+import { UrlRow, CredRow } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
+import { SERVER_URL } from '../config';
 
 const PACKAGE_RE = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 
@@ -21,10 +22,25 @@ export const TenantNew = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
   const packageValid = !form.packageName || PACKAGE_RE.test(form.packageName);
+
+  const pickLogo = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    try {
+      const res = await tenantsApi.uploadLogo(file);
+      setForm(f => ({ ...f, brandLogo: `${SERVER_URL}${res.data.url}` }));
+    } catch (err) {
+      toast(err.message || 'Failed to upload logo', 'error');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -41,7 +57,7 @@ export const TenantNew = () => {
         appName: form.appName.trim(),
         packageName: form.packageName.trim(),
         brandName: form.brandName.trim(),
-        brandLogo: form.brandLogo.trim(),
+        brandLogo: form.brandLogo,
         primaryColor: form.primaryColor,
         mongoUri: form.mongoUri.trim() || undefined,
       };
@@ -77,6 +93,22 @@ export const TenantNew = () => {
             {urls.admin && <UrlRow label="Admin" url={urls.admin} />}
             {urls.api && <UrlRow label="API" url={urls.api} />}
           </div>
+
+          {created.adminCredentials && (
+            <div className="text-left mt-4 rounded-xl border border-warning/40 bg-warning/10 p-4 space-y-3">
+              <div className="flex items-start gap-2 text-warning">
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                <p className="text-[13px] font-bold">Admin login — save this now, shown only once here</p>
+              </div>
+              <div className="rounded-lg border border-border-primary bg-bg-inset px-4 py-2">
+                <CredRow label="Email" value={created.adminCredentials.email} />
+                <CredRow label="Password" value={created.adminCredentials.password} />
+              </div>
+              <p className="text-[11px] text-text-tertiary">
+                You can reveal or rotate this later from the tenant's detail page.
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-center gap-3 mt-6">
             <button onClick={() => navigate(`/tenants/${created.slug}`)} className="btn-primary">
@@ -165,21 +197,19 @@ export const TenantNew = () => {
             </div>
           </div>
           <div>
-            <label className="field-label">Brand logo URL</label>
+            <label className="field-label">Brand logo</label>
             <div className="flex items-center gap-3">
-              <input
-                value={form.brandLogo}
-                onChange={set('brandLogo')}
-                placeholder="https://cdn.acme.com/logo.png"
-                className="field-input font-mono flex-1"
-              />
-              {form.brandLogo.trim() && (
+              <label className="field-input font-mono flex-1 cursor-pointer flex items-center gap-2 text-text-tertiary">
+                {uploadingLogo
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</>
+                  : <><Upload className="w-4 h-4" /> {form.brandLogo ? 'Change logo' : 'Choose an image…'}</>}
+                <input type="file" accept="image/*" onChange={pickLogo} className="hidden" />
+              </label>
+              {form.brandLogo && (
                 <img
-                  src={form.brandLogo.trim()}
+                  src={form.brandLogo}
                   alt="Brand logo preview"
                   className="w-10 h-10 rounded-lg border border-border-primary bg-bg-inset object-contain shrink-0"
-                  onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
-                  onLoad={(e) => { e.currentTarget.style.visibility = 'visible'; }}
                 />
               )}
             </div>

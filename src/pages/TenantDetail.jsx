@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Building2, Link2, Database, Smartphone, PauseCircle, PlayCircle,
-  RotateCw, Package, RefreshCw, KeyRound, AlertTriangle, Eye,
+  RotateCw, Package, RefreshCw, KeyRound, AlertTriangle, Eye, Trash2,
 } from 'lucide-react';
 import { tenants as tenantsApi, builds as buildsApi, platform as platformApi } from '../services/api';
 import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState, AppBadge, BuildDownloadButton, CredRow } from '../components/common/UI.jsx';
@@ -45,6 +45,7 @@ const InfoRow = ({ label, value, mono }) => (
 
 export const TenantDetail = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [tenant, setTenant] = useState(null);
   const [buildList, setBuildList] = useState([]);
@@ -123,6 +124,22 @@ export const TenantDetail = () => {
     }
   };
 
+  const deleteTenant = async () => {
+    if (!window.confirm(
+      `Permanently delete "${tenant.name}"? This drops its database and cannot be undone. ` +
+      `Its subdomains' cached TLS certs must be cleared separately by an operator.`
+    )) return;
+    setBusy('delete');
+    try {
+      await tenantsApi.delete(slug);
+      toast(`Tenant "${tenant.name}" deleted`);
+      navigate('/tenants');
+    } catch (err) {
+      toast(err.message, 'error');
+      setBusy('');
+    }
+  };
+
   const queueBuild = async (app, artifact) => {
     setBusy(`build-${app}-${artifact}`);
     try {
@@ -178,6 +195,10 @@ export const TenantDetail = () => {
                 : <><PauseCircle className="w-4 h-4" />Suspend</>}
             </button>
           )}
+          <button onClick={deleteTenant} disabled={busy === 'delete'} className="btn-danger">
+            <Trash2 className="w-4 h-4" />
+            {busy === 'delete' ? 'Deleting…' : 'Delete'}
+          </button>
         </div>
       </div>
 

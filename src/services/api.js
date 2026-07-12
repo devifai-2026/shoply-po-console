@@ -26,10 +26,11 @@ const req = async (method, path, body) => {
   return data;
 };
 
-const get   = (path)       => req('GET',   path);
-const post  = (path, body) => req('POST',  path, body);
-const put   = (path, body) => req('PUT',   path, body);
-const patch = (path, body) => req('PATCH', path, body);
+const get    = (path)       => req('GET',    path);
+const post   = (path, body) => req('POST',   path, body);
+const put    = (path, body) => req('PUT',    path, body);
+const patch  = (path, body) => req('PATCH',  path, body);
+const del    = (path)       => req('DELETE', path);
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 export const auth = {
@@ -48,10 +49,25 @@ export const tenants = {
   create:        (body)         => post('/tenants', body),
   suspend:       (slug)         => patch(`/tenants/${slug}/suspend`),
   reactivate:    (slug)         => patch(`/tenants/${slug}/reactivate`),
+  delete:        (slug)         => del(`/tenants/${slug}`),
   rotateSecrets: (slug, body)   => put(`/tenants/${slug}/secrets`, body),
   queueBuild:    (slug, body)   => post(`/tenants/${slug}/builds`, body),
   getAdminCredentials:    (slug) => get(`/tenants/${slug}/admin-credentials`),
   rotateAdminCredentials: (slug) => post(`/tenants/${slug}/admin-credentials/rotate`),
+  uploadLogo: (file) => {
+    const body = new FormData();
+    body.append('logo', file);
+    const token = getToken();
+    return fetch(`${BASE}/tenants/logo-upload`, {
+      method: 'POST',
+      headers: { Authorization: token ? `Bearer ${token}` : '' },
+      body,
+    }).then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
+      return data;
+    });
+  },
 };
 
 // ─── Builds ──────────────────────────────────────────────────────────────────

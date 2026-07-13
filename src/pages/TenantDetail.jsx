@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Building2, Link2, Database, Smartphone, PauseCircle, PlayCircle,
-  RotateCw, Package, RefreshCw, KeyRound, AlertTriangle, Eye, Trash2,
+  RotateCw, Package, RefreshCw, KeyRound, AlertTriangle, Eye, Trash2, Sparkles,
 } from 'lucide-react';
 import { tenants as tenantsApi, builds as buildsApi, platform as platformApi } from '../services/api';
-import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState, AppBadge, BuildDownloadButton, CredRow } from '../components/common/UI.jsx';
+import { StatusBadge, DbBadge, PageLoader, UrlRow, EmptyState, AppBadge, BuildDownloadButton, CredRow, Toggle } from '../components/common/UI.jsx';
 import { useToast } from '../contexts/ToastContext.jsx';
 import { formatDate } from '../lib/utils';
 
@@ -76,6 +76,16 @@ export const TenantDetail = () => {
       toast(err.message, 'error');
     } finally {
       setBusy('');
+    }
+  };
+
+  const toggleAiReviewAddon = async (nextValue) => {
+    try {
+      await tenantsApi.setAddon(slug, 'aiProductReview', nextValue);
+      toast(nextValue ? 'AI Product Review enabled' : 'AI Product Review disabled');
+      load();
+    } catch (err) {
+      toast(err.message, 'error');
     }
   };
 
@@ -337,6 +347,22 @@ export const TenantDetail = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Premium add-ons */}
+        <div className="console-card p-5">
+          <div className="flex items-center gap-2 text-[13px] font-bold text-text-primary mb-1">
+            <Sparkles className="w-4 h-4 text-primary-light" /> Premium Add-ons
+          </div>
+          <p className="text-[12px] text-text-tertiary mb-3">
+            PO-only toggles — never self-serve from the tenant's own admin panel.
+          </p>
+          <Toggle
+            enabled={!!tenant.addons?.aiProductReview?.enabled}
+            onChange={toggleAiReviewAddon}
+            label="AI Product Review"
+            subLabel="₹599/month — Vertex AI checks new listings for consistency before they go live"
+          />
         </div>
       </div>
 

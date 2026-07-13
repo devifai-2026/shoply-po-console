@@ -10,6 +10,7 @@ import { TenantNew } from './pages/TenantNew.jsx';
 import { TenantDetail } from './pages/TenantDetail.jsx';
 import { Builds } from './pages/Builds.jsx';
 import { Keystore } from './pages/Keystore.jsx';
+import { AiReviewPrompt } from './pages/AiReviewPrompt.jsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { ToastProvider } from './contexts/ToastContext.jsx';
 
@@ -33,6 +34,7 @@ const ConsoleShell = () => {
               <Route path="/tenants/:slug" element={<TenantDetail />} />
               <Route path="/builds"        element={<Builds />} />
               <Route path="/keystore"      element={<Keystore />} />
+              <Route path="/ai-review-prompt" element={<AiReviewPrompt />} />
               <Route path="*"              element={<Navigate to="/" replace />} />
             </Routes>
           </div>

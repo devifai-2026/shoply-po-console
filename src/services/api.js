@@ -54,6 +54,7 @@ export const tenants = {
   queueBuild:    (slug, body)   => post(`/tenants/${slug}/builds`, body),
   getAdminCredentials:    (slug) => get(`/tenants/${slug}/admin-credentials`),
   rotateAdminCredentials: (slug) => post(`/tenants/${slug}/admin-credentials/rotate`),
+  setAddon: (slug, addonKey, enabled) => patch(`/tenants/${slug}/addons/${addonKey}`, { enabled }),
   uploadLogo: (file) => {
     const body = new FormData();
     body.append('logo', file);
@@ -95,4 +96,11 @@ export const keystore = {
   get:      ()     => get('/keystore'),
   upload:   (body) => post('/keystore/upload', body),
   generate: (body) => post('/keystore/generate', body),
+};
+
+// ─── AI Product Review prompt (platform-wide) ────────────────────────────────
+export const aiPrompt = {
+  get:    ()     => get('/ai-prompt'),
+  update: (body) => put('/ai-prompt', body),
+  test:   (body) => post('/ai-prompt/test', body),
 };

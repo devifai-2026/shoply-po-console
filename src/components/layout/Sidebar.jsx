@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, Building2, Hammer, KeyRound } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, Building2, Hammer, KeyRound, Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const NAV = [
@@ -9,6 +9,7 @@ const NAV = [
   { to: '/tenants', label: 'Tenants', icon: Building2 },
   { to: '/builds', label: 'Builds', icon: Hammer },
   { to: '/keystore', label: 'Keystore', icon: KeyRound },
+  { to: '/ai-review-prompt', label: 'AI Review Prompt', icon: Sparkles },
 ];
 
 export const Sidebar = () => (

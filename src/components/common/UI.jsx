@@ -185,6 +185,30 @@ export const BuildDownloadButton = ({ id }) => {
   );
 };
 
+// ─── Toggle ──────────────────────────────────────────────────────────────────
+export const Toggle = ({ enabled, onChange, label, subLabel }) => (
+  <div className="flex items-center justify-between gap-4 py-3">
+    {(label || subLabel) && (
+      <div className="flex flex-col gap-0.5">
+        {label && <div className="text-[14px] font-semibold text-slate-100">{label}</div>}
+        {subLabel && <div className="text-[12px] text-slate-400">{subLabel}</div>}
+      </div>
+    )}
+    <button
+      onClick={() => onChange(!enabled)}
+      className={cn(
+        'relative w-[44px] h-[24px] rounded-full shrink-0 transition-colors duration-200 cursor-pointer',
+        enabled ? 'bg-primary' : 'bg-slate-600',
+      )}
+    >
+      <div className={cn(
+        'absolute top-[3px] left-[3px] w-[18px] h-[18px] bg-white rounded-full transition-all duration-200',
+        enabled && 'translate-x-[20px]',
+      )} />
+    </button>
+  </div>
+);
+
 // ─── DB badge (default cluster vs custom URI) ────────────────────────────────
 export const DbBadge = ({ onDefault }) => (
   <span
